@@ -43,6 +43,8 @@ namespace BLSL
 
     enum class KeywordType
     {
+        IDENTIFIER_PLACEHOLDER,
+
         MEMINIT,
         ALLOC,
         FUNC,
@@ -66,15 +68,19 @@ namespace BLSL
     enum class LiteralType
     {
         INT,
+        BIN,
+        HEX,
         SCI,
         ASCII
     };
+
+
 
 }
 
 namespace BLSL
 {
-    using TokenSubType_t = std::variant<OperatorType, ComparatorType, KeywordType> ;
+    using TokenSubType_t = std::variant<OperatorType, ComparatorType, KeywordType, LiteralType> ;
     using LexemeTable_t = std::unordered_map<TokenType, std::vector<std::pair <std::string, TokenSubType_t>>>;
 
 
@@ -126,7 +132,6 @@ struct std::formatter<BLSL::Token> : std::formatter<std::string>
         }
         ss << "> [";
         ss << tok.debugPos.line << ":" << tok.debugPos.column << "]";
-        ss << "\n";
 
         return std::formatter<std::string>::format(ss.str(), ctx);
     }

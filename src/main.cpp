@@ -4,13 +4,14 @@
 #include <format>
 
 #include "headers/core/blsl.h"
+#include "headers/intermediate/lexer.h"
 
 int main()
 {
-    BLSL::Token token;
-    token.type = BLSL::TokenType::OPERATOR;
-    token.subType = BLSL::OperatorType::ADD;
-    token.debugPos = {12, 24};
-    token.value = "Hello World!";
-    std::print("{}", token);
+    BLSL::Lexer lexer;
+    lexer.mount_source_from_file("../samples/operators.blsl");
+    // auto out = lexer.lex();
+
+    lexer.lex_to_file("../samples/out.blslex");
+
 }

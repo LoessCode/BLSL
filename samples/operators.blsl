@@ -1,5 +1,12 @@
-+
--
-<<
-&
-!
+489302 // This is a number
+0b001100101 // This is binary
+0xAFF22B // This is hex
+
+// Next we will check Strings
+"This is a string. \t
+Strings are multiline. Also supports newlines: \n and they support quotes within. \"\n"
+
+for
+while x -
+Value23 + _hidden
+
