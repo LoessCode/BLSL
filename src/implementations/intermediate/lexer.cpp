@@ -87,7 +87,10 @@ std::optional<BLSL::Token> BLSL::Lexer::_lex_long_operator()
 {
     std::string ch = _source.substr(_carat, 2);
 
-    auto view = std::views::join(std::array{LEXEME_TABLE.at(TokenType::OPERATOR), LEXEME_TABLE.at(TokenType::COMPARATOR)});
+    auto view = std::views::join(std::array{
+        LEXEME_TABLE.at(TokenType::OPERATOR),
+        LEXEME_TABLE.at(TokenType::COMPARATOR),
+        LEXEME_TABLE.at(TokenType::PUNCTUATOR)});
 
     for (auto pair : view)
     {
@@ -242,7 +245,13 @@ std::optional<BLSL::Token> BLSL::Lexer::_lex_single_operator()
 {
     std::string ch = _source.substr(_carat, 1);
 
-    for (auto pair : LEXEME_TABLE.at(TokenType::OPERATOR))
+    auto view = std::views::join(std::array{
+        LEXEME_TABLE.at(TokenType::OPERATOR),
+        LEXEME_TABLE.at(TokenType::COMPARATOR),
+        LEXEME_TABLE.at(TokenType::PUNCTUATOR)
+    });
+
+    for (auto pair : view)
     {
         std::string op = pair.first;
         if (op == ch)

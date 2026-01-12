@@ -29,6 +29,17 @@ namespace BLSL
             {"<", ComparatorType::LESSER},
             {"==", ComparatorType::EQUAL}
         }},
+        {TokenType::PUNCTUATOR, {
+            {",", PunctuatorType::COMMA},
+            {";", PunctuatorType::SEMICOLON},
+            {":", PunctuatorType::COLON},
+            {"(", PunctuatorType::LPAREN},
+            {")", PunctuatorType::RPAREN},
+            {"[", PunctuatorType::LSQUARE},
+            {"]", PunctuatorType::RSQUARE},
+            {"{", PunctuatorType::LBRACE},
+            {"}", PunctuatorType::RBRACE}
+        }},
         {TokenType::KEYWORD, {
             {"meminit", KeywordType::MEMINIT},
             {"alloc", KeywordType::ALLOC},

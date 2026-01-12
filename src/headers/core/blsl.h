@@ -40,6 +40,19 @@ namespace BLSL
         BW_NOT
     };
 
+    enum class PunctuatorType
+    {
+        COMMA,
+        SEMICOLON,
+        COLON,
+        LPAREN,
+        RPAREN,
+        LSQUARE,
+        RSQUARE,
+        LBRACE,
+        RBRACE,
+    };
+
 
     enum class KeywordType
     {
@@ -80,7 +93,7 @@ namespace BLSL
 
 namespace BLSL
 {
-    using TokenSubType_t = std::variant<OperatorType, ComparatorType, KeywordType, LiteralType> ;
+    using TokenSubType_t = std::variant<OperatorType, ComparatorType, KeywordType, LiteralType, PunctuatorType> ;
     using LexemeTable_t = std::unordered_map<TokenType, std::vector<std::pair <std::string, TokenSubType_t>>>;
 
 
