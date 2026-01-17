@@ -79,12 +79,46 @@ std::expected<std::unique_ptr<BLSL::ASTNode::BinaryOperator>, BLSL::Token> BLSL:
 
 BLSL::Node_t BLSL::Parser::_parse_expression(int lowestPrecedence)
 {
-    auto LHSExpected = _get_atom();
-    if (!LHSExpected.has_value()) std::print("{}", LHSExpected.error());
-    Node_t LHS = std::move(LHSExpected.value());
+    Node_t LHS;
+
+    if (_peek().type == TokenType::PUNCTUATOR)
+    {
+        if (std::get<PunctuatorType>(_peek().subType) == PunctuatorType::LPAREN)
+        {
+            _next();
+
+            LHS = _parse_expression();
+        }
+        else
+        {
+            throw;
+        }
+    }
+    else
+    {
+        auto LHSExpected = _get_atom();
+        if (!LHSExpected.has_value())
+        {
+            //TODO: Errors. std::print("{}", LHSExpected.error());
+            throw;
+        }
+
+        LHS = std::move(LHSExpected.value());
+    }
+
+
 
     while (true)
     {
+        if (_peek().type == TokenType::PUNCTUATOR)
+        {
+            if (std::get<PunctuatorType>(_peek().subType) == PunctuatorType::RPAREN)
+            {
+                _next();
+                break;
+            }
+        }
+
         auto opExpected = _peek_operator();
         if (!opExpected.has_value()) break;
 
@@ -92,6 +126,7 @@ BLSL::Node_t BLSL::Parser::_parse_expression(int lowestPrecedence)
         if (leftPrecedence < lowestPrecedence) break;
 
         auto op = _get_operator().value();
+
         auto RHS = _parse_expression(rightPrecedence);
 
         op->left = std::move(LHS);

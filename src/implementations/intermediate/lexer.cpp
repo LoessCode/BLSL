@@ -99,7 +99,8 @@ std::optional<BLSL::Token> BLSL::Lexer::_lex_long_operator()
         {
             Token token;
 
-            token.type =  std::holds_alternative<OperatorType>(pair.second) ? TokenType::OPERATOR  : TokenType::COMPARATOR;
+            token.type =  std::holds_alternative<OperatorType>(pair.second) ? TokenType::OPERATOR  :
+            std::holds_alternative<ComparatorType>(pair.second) ? TokenType::COMPARATOR : TokenType::PUNCTUATOR;
 
             token.subType = pair.second;
 #ifndef NDEBUG
@@ -259,7 +260,10 @@ std::optional<BLSL::Token> BLSL::Lexer::_lex_single_operator()
             Token token;
             token.debugPos = _debugPos;
             token.value = "";
-            token.type = TokenType::OPERATOR;
+
+            token.type =  std::holds_alternative<OperatorType>(pair.second) ? TokenType::OPERATOR  :
+            std::holds_alternative<ComparatorType>(pair.second) ? TokenType::COMPARATOR : TokenType::PUNCTUATOR;
+
             token.subType = pair.second;
             _step();
             return token;
