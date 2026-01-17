@@ -94,6 +94,20 @@ BLSL::Node_t BLSL::Parser::_parse_expression(int lowestPrecedence)
             throw;
         }
     }
+    else if (_peek().type == TokenType::OPERATOR)
+    {
+        if (PREFIX_PRECEDENCE.contains(std::get<OperatorType>(_peek().subType)))
+        {
+            auto token = _next();
+            ASTNode::UnaryOperator unaryOperator;
+            unaryOperator.debugPos = token.debugPos;
+            unaryOperator.type = std::get<OperatorType>(token.subType);
+
+            unaryOperator.right = _parse_expression(PREFIX_PRECEDENCE.at(std::get<OperatorType>(token.subType)));
+
+            return std::make_unique<ASTNode::UnaryOperator>(std::move(unaryOperator));
+        }
+    }
     else
     {
         auto LHSExpected = _get_atom();

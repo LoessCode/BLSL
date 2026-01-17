@@ -65,6 +65,11 @@ namespace BLSL
         {OperatorType::BW_OR, {100, 102}},
     };
 
+    const std::unordered_map<OperatorType, int> PREFIX_PRECEDENCE = {
+        {OperatorType::SUB, 2100},
+        {OperatorType::BW_NOT, 1100}
+    };
+
     const std::unordered_map<ComparatorType, std::pair<int, int>> COMPARATOR_PRECEDENCE = {
         {ComparatorType::LESSER, {50, 52}},
         {ComparatorType::GREATER, {50, 52}},

@@ -22,13 +22,31 @@ public:
 
 void BLSL::ASTNode::ConsoleVisitor::visit(BinaryOperator *node)
 {
-    consoleTree.cout() << "Binary Operator: " << static_cast<int>(node->type) << std::endl;
+    consoleTree.cout() << "Binary Operator: " << static_cast<int>(node->type) << "\n";
+
+    consoleTree.cout() << "(\n";
+
     consoleTree.indent();
 
     node->left->invite(*this);
     node->right->invite(*this);
 
     consoleTree.unindent();
+
+    consoleTree.cout() << ")" << std::endl;
+}
+
+void BLSL::ASTNode::ConsoleVisitor::visit(UnaryOperator *node)
+{
+    consoleTree.cout() << "Unary Operator: " << static_cast<int>(node->type) << "\n";
+
+    consoleTree.cout() << "(\n";
+
+    consoleTree.indent();
+    node->right->invite(*this);
+    consoleTree.unindent();
+
+    consoleTree.cout() << ")" << std::endl;
 }
 
 void BLSL::ASTNode::ConsoleVisitor::visit(Literal *node)
@@ -50,6 +68,12 @@ void BLSL::ASTNode::Variable::invite(Visitor &visitor)
 {
     visitor.visit(this);
 }
+
+void BLSL::ASTNode::UnaryOperator::invite(Visitor &visitor)
+{
+    visitor.visit(this);
+}
+
 void BLSL::ASTNode::BinaryOperator::invite(Visitor &visitor)
 {
     visitor.visit(this);

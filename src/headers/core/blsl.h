@@ -102,6 +102,7 @@ namespace BLSL
     // int priority. * has higher priority than +. These ints are shared across the precedence table
     // i.e. comparators precedence can be checked with operator precedence
     extern const std::unordered_map<OperatorType, std::pair<int, int>> OPERATOR_PRECEDENCE;
+    extern const std::unordered_map<OperatorType, int> PREFIX_PRECEDENCE;
     extern const std::unordered_map<ComparatorType, std::pair<int, int>> COMPARATOR_PRECEDENCE;
 }
 

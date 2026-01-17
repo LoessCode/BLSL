@@ -74,6 +74,8 @@ namespace BLSL
         struct UnaryOperator : public Operator
         {
             Node_t right;
+
+            void invite(Visitor& visitor) override;
         };
 
         struct BinaryOperator : public Operator
@@ -147,6 +149,7 @@ namespace BLSL
         {
         public:
             virtual void visit(BinaryOperator* node) = 0;
+            virtual void visit(UnaryOperator* node) = 0;
             virtual void visit(Literal* node) = 0;
             virtual void visit(Variable* node) = 0;
         };
@@ -155,6 +158,7 @@ namespace BLSL
         {
         public:
             void visit(BinaryOperator* node) override;
+            void visit(UnaryOperator* node) override;
             void visit(Literal* node) override;
             void visit(Variable* node) override;
         };
