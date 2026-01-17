@@ -304,6 +304,9 @@ void BLSL::Lexer::mount_source_from_file(const std::string &path)
     _source.resize(length + 100);
     scriptFile.read(_source.data(), static_cast<std::streamsize>(length));
     scriptFile.close();
+
+    _carat = 0;
+    _debugPos = {1, 0};
 }
 
 void BLSL::Lexer::mount_source_from_string(std::string &&source)
@@ -327,7 +330,6 @@ std::unique_ptr<std::vector<BLSL::Token>> BLSL::Lexer::lex()
 
             if (result.has_value())
             {
-                std::println("{}", result.value());
                 out.push_back(result.value());
                 break;
             }

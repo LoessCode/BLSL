@@ -5,58 +5,72 @@
 #include "../../headers/intermediate/astnodes.h"
 #include <iostream>
 
-static class
+std::ostream & BLSL::ASTNode::PrintVisitor::_out()
 {
-private:
-    unsigned _tabLevel = 0;
+    if (_outFile)
+    {
+        for (unsigned i = 0; i < _tabLevel; i++)
+        {
+            _outFile << '\t';
+        }
+        return _outFile;
+    }
+    for (unsigned i = 0; i < _tabLevel; i++)
+    {
+        std::cout << '\t';
+    }
+    return std::cout;
+}
 
-public:
-
-    void indent() {_tabLevel++;}
-    void unindent() {if (_tabLevel) _tabLevel--;}
-
-    std::ostream& cout() const {for (unsigned i = 0; i < _tabLevel; i++) std::cout << '\t'; return std::cout;}
-} consoleTree;
-
-
-
-void BLSL::ASTNode::ConsoleVisitor::visit(BinaryOperator *node)
+BLSL::ASTNode::PrintVisitor::PrintVisitor(std::string outPath)
+: _outPath(std::move(outPath))
 {
-    consoleTree.cout() << "Binary Operator: " << static_cast<int>(node->type) << "\n";
+    _outFile.open(_outPath);
+    //TODO: EXCEPTION
+}
 
-    consoleTree.cout() << "(\n";
+BLSL::ASTNode::PrintVisitor::~PrintVisitor()
+{
+    _outFile.close();
+}
 
-    consoleTree.indent();
+void BLSL::ASTNode::PrintVisitor::visit(BinaryOperator *node)
+{
+    _out() << "Binary Operator: " << static_cast<int>(node->type) << "\n";
+
+    _out() << "(\n";
+
+    _indent();
 
     node->left->invite(*this);
     node->right->invite(*this);
 
-    consoleTree.unindent();
+    _unindent();
 
-    consoleTree.cout() << ")" << std::endl;
+    _out() << ")" << std::endl;
 }
 
-void BLSL::ASTNode::ConsoleVisitor::visit(UnaryOperator *node)
+void BLSL::ASTNode::PrintVisitor::visit(UnaryOperator *node)
 {
-    consoleTree.cout() << "Unary Operator: " << static_cast<int>(node->type) << "\n";
+    _out() << "Unary Operator: " << static_cast<int>(node->type) << "\n";
 
-    consoleTree.cout() << "(\n";
+    _out() << "(\n";
 
-    consoleTree.indent();
+    _indent();
     node->right->invite(*this);
-    consoleTree.unindent();
+    _unindent();
 
-    consoleTree.cout() << ")" << std::endl;
+    _out() << ")" << std::endl;
 }
 
-void BLSL::ASTNode::ConsoleVisitor::visit(Literal *node)
+void BLSL::ASTNode::PrintVisitor::visit(Literal *node)
 {
-    consoleTree.cout() << "Literal: <" << static_cast<int>(node->type) << "> " << node->value << std::endl;
+    _out() << "Literal: <" << static_cast<int>(node->type) << "> " << node->value << std::endl;
 }
 
-void BLSL::ASTNode::ConsoleVisitor::visit(Variable *node)
+void BLSL::ASTNode::PrintVisitor::visit(Variable *node)
 {
-    consoleTree.cout() << "Variable: " << node->identifier << std::endl;
+    _out() << "Variable: " << node->identifier << std::endl;
 }
 
 void BLSL::ASTNode::Literal::invite(Visitor &visitor)

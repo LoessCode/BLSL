@@ -5,6 +5,9 @@
 #ifndef BLSLANG_ASTNODES_H
 #define BLSLANG_ASTNODES_H
 
+#include <fstream>
+#include <utility>
+
 #include "../core/blsl.h"
 
 namespace BLSL
@@ -154,8 +157,24 @@ namespace BLSL
             virtual void visit(Variable* node) = 0;
         };
 
-        class ConsoleVisitor : public Visitor
+        class PrintVisitor : public Visitor
         {
+        private:
+            std::string _outPath;
+            std::ofstream _outFile;
+            unsigned _tabLevel = 0;
+
+        private:
+            void _indent() {_tabLevel++;}
+            void _unindent() {if (_tabLevel) _tabLevel--;}
+
+            std::ostream& _out();
+
+        public:
+            PrintVisitor() = default;
+            explicit PrintVisitor(std::string  outPath);
+            ~PrintVisitor();
+
         public:
             void visit(BinaryOperator* node) override;
             void visit(UnaryOperator* node) override;
