@@ -63,6 +63,24 @@ std::expected<BLSL::Node_t, BLSL::Token> BLSL::Parser::_get_atom()
     return std::unexpected(_peek());
 }
 
+std::expected<std::string, BLSL::Token> BLSL::Parser::_get_identifier()
+{
+    if (_peek().type == TokenType::IDENTIFIER)
+    {
+        return _next().value.value();
+    }
+    return std::unexpected(_peek());
+}
+
+std::expected<BLSL::Token, BLSL::Token> BLSL::Parser::_get_literal()
+{
+    if (_peek().type == TokenType::LITERAL)
+    {
+        return _next();
+    }
+    return std::unexpected(_peek());
+}
+
 std::expected<std::unique_ptr<BLSL::ASTNode::BinaryOperator>, BLSL::Token> BLSL::Parser::_get_operator()
 {
     if (_peek().type == TokenType::OPERATOR)
@@ -81,6 +99,19 @@ bool BLSL::Parser::_match_punctuator(PunctuatorType pType) const
     if (_peek().type == TokenType::PUNCTUATOR)
     {
         if (std::get<PunctuatorType>(_peek().subType) == pType)
+        {
+            return true;
+        }
+        return false;
+    }
+    return false;
+}
+
+bool BLSL::Parser::_match_comparator(ComparatorType cType) const
+{
+    if (_peek().type == TokenType::COMPARATOR)
+    {
+        if (std::get<ComparatorType>(_peek().subType) == cType)
         {
             return true;
         }
@@ -121,6 +152,43 @@ void BLSL::Parser::_consume_punctuator(PunctuatorType pType)
     }
 }
 
+void BLSL::Parser::_consume_operator(OperatorType oType)
+{
+    if (_peek().type == TokenType::OPERATOR)
+    {
+
+        Token token = _next();
+        if (std::get<OperatorType>(token.subType) != oType)
+        {
+            //TODO: THrow
+            throw;
+        }
+    }
+    else
+    {
+        //TODO: THrow
+        throw;
+    }
+}
+
+void BLSL::Parser::_consume_comparator(ComparatorType cType)
+{
+    if (_peek().type == TokenType::COMPARATOR)
+    {
+        Token token = _next();
+        if (std::get<ComparatorType>(token.subType) != cType)
+        {
+            //TODO: THrow
+            throw;
+        }
+    }
+    else
+    {
+        //TODO: THrow
+        throw;
+    }
+}
+
 void BLSL::Parser::_consume_keyword(KeywordType kType)
 {
     if (_peek().type == TokenType::KEYWORD)
@@ -139,12 +207,67 @@ void BLSL::Parser::_consume_keyword(KeywordType kType)
     }
 }
 
-BLSL::Node_t BLSL::Parser::_parse_for() {}
+size_t BLSL::Parser::_consume_compile_time_size()
+{
+    _consume_comparator(ComparatorType::LESSER);
+    auto literal = _get_literal();
+    if (!literal.has_value())
+    {
+        //TODO: Throw
+        throw;
+    }
+
+    if (std::get<LiteralType>(literal->subType) != LiteralType::INT)
+    {
+        //TODO: Throw
+        throw;
+    }
+
+    _consume_comparator(ComparatorType::GREATER);
+    return std::stoi(literal->value.value());
+}
+
+std::vector<size_t> BLSL::Parser::_consume_compile_time_size_list()
+{
+    std::vector<size_t> result;
+    _consume_comparator(ComparatorType::LESSER);
+
+    while (!_match_comparator(ComparatorType::GREATER))
+    {
+        auto literal = _get_literal();
+        if (!literal.has_value())
+        {
+            //TODO: Throw
+            throw;
+        }
+
+        if (std::get<LiteralType>(literal->subType) != LiteralType::INT)
+        {
+            //TODO: Throw
+            throw;
+        }
+
+        result.push_back(std::stoi(literal->value.value()));
+
+        if (!_match_comparator(ComparatorType::GREATER)) _consume_punctuator(PunctuatorType::COMMA);
+    }
+
+
+    _consume_comparator(ComparatorType::GREATER);
+
+    return result;
+}
+
+BLSL::Node_t BLSL::Parser::_parse_for()
+{
+
+}
 BLSL::Node_t BLSL::Parser::_parse_while() {}
 
 
 BLSL::Node_t BLSL::Parser::_parse_if()
 {
+    Token head = _next();
     ASTNode::If ifNode;
 
     _consume_punctuator(PunctuatorType::LPAREN);
@@ -169,8 +292,60 @@ BLSL::Node_t BLSL::Parser::_parse_if()
     return std::make_unique<ASTNode::If>(std::move(ifNode));
 }
 
-BLSL::Node_t BLSL::Parser::_parse_else() {}
-BLSL::Node_t BLSL::Parser::_parse_func() {}
+BLSL::Node_t BLSL::Parser::_parse_else()
+{
+    //TODO: Error, else without if
+    Token head = _next();
+    throw;
+}
+
+BLSL::Node_t BLSL::Parser::_parse_func()
+{
+    Token head = _next();
+    ASTNode::Func funcNode;
+    funcNode.debugPos = head.debugPos;
+
+    auto identifierExpected = _get_identifier();
+    if (!identifierExpected.has_value())
+    {
+        //TODO: THROW
+        throw;
+    }
+    funcNode.identifier = identifierExpected.value();
+
+    funcNode.returnSize = _consume_compile_time_size();
+
+    _consume_punctuator(PunctuatorType::LPAREN);
+
+    while (!_match_punctuator(PunctuatorType::RPAREN))
+    {
+        FormalParameter formalParam;
+        auto identifierExpected = _get_identifier();
+        if (!identifierExpected.has_value())
+        {
+            //TODO: Throw
+            throw;
+        }
+        formalParam.identifier = identifierExpected.value();
+        funcNode.parameters.push_back(formalParam);
+
+        if (!_match_punctuator(PunctuatorType::RPAREN))_consume_punctuator(PunctuatorType::COMMA);
+    }
+
+    _consume_punctuator(PunctuatorType::RPAREN);
+
+    auto compileSizes = _consume_compile_time_size_list();
+
+    for (size_t i = 0; i < funcNode.parameters.size(); i++)
+    {
+        if (i == compileSizes.size()) throw;
+        funcNode.parameters[i].size = compileSizes[i];
+    }
+
+    funcNode.body = _parse_statement();
+
+    return std::make_unique<ASTNode::Func>(std::move(funcNode));
+}
 
 BLSL::Node_t BLSL::Parser::_parse_expression(int lowestPrecedence)
 {
@@ -256,7 +431,7 @@ BLSL::BodyNode_t BLSL::Parser::_parse_block()
 
     while (!_match_punctuator(PunctuatorType::RBRACE))
     {
-        bodyNode.nodes.emplace_back(_parse_expression());
+        bodyNode.nodes.emplace_back(_parse_statement());
     }
 
     _consume_punctuator(PunctuatorType::RBRACE);
@@ -278,23 +453,18 @@ BLSL::Node_t BLSL::Parser::_parse_statement()
             switch (std::get<KeywordType>(_peek().subType))
             {
             case KeywordType::FOR:
-                _next();
                 return _parse_for();
 
             case KeywordType::WHILE:
-                _next();
                 return _parse_while();
 
             case KeywordType::IF:
-                _next();
                 return _parse_if();
 
             case KeywordType::ELSE:
-                _next();
                 return _parse_else();
 
             case KeywordType::FUNC:
-                _next();
                 return _parse_func();
             }
 

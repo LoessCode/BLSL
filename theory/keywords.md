@@ -10,7 +10,7 @@ This allocates size bytes for the variable.
 ## Function
 `func <identifier><<return size>> ()<<input size 1, 2, 3...>> {...}`
 
-Example: `func add<8> ()<8, 8>`
+Example: `func add<8> (a, b)<8, 8>`
 
 
 ## Control Flow
@@ -22,6 +22,7 @@ Example: `func add<8> ()<8, 8>`
 `while (<expression>) {...}`
 
 # Builtins
+
 
 ## Memory
 

@@ -98,19 +98,24 @@ namespace BLSL
         struct MemInit : public Node
         {
             size_t size;
+
+            void invite(Visitor& visitor) override;
         };
 
         struct Alloc : public Node
         {
             size_t size;
             std::string identifier;
+
+            void invite(Visitor& visitor) override;
         };
 
         struct Func : public Node
         {
             std::string identifier;
+            size_t returnSize;
             FormalParameterDeclaration_t parameters;
-            BodyNode_t body;
+            Node_t body;
 
             void invite(Visitor& visitor) override;
         };
@@ -171,6 +176,9 @@ namespace BLSL
             virtual void visit(For* node) = 0;
             virtual void visit(While* node) = 0;
             virtual void visit(If* node) = 0;
+
+            virtual void visit(MemInit* node) = 0;
+            virtual void visit(Alloc* node) = 0;
         };
 
         class PrintVisitor : public Visitor
@@ -184,6 +192,7 @@ namespace BLSL
             void _indent() {_tabLevel++;}
             void _unindent() {if (_tabLevel) _tabLevel--;}
 
+            std::ostream& _out_indent();
             std::ostream& _out();
 
         public:
@@ -203,6 +212,9 @@ namespace BLSL
             void visit(For* node) override;
             void visit(While* node) override;
             void visit(If* node) override;
+
+            void visit(MemInit* node) override;
+            void visit(Alloc* node) override;
         };
     }
 

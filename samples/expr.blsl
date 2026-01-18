@@ -1,8 +1,8 @@
-if (3 + 4 * a)
-{
 
-}
-else if (55)
+func sum<8> (a, b) <8, 8>
 {
+    if (a + b)
+    {
 
+    }
 }
