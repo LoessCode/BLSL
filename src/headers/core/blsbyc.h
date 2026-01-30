@@ -41,6 +41,11 @@ namespace BLSVM
             MUL,
             DIV,
 
+            ADD_SCI,
+            SUB_SCI,
+            MUL_SCI,
+            DIV_SCI,
+
             CLING,              // This will tell a register to cling to a value from the stack/heap
             JUMP,
 
@@ -48,9 +53,17 @@ namespace BLSVM
 
         };
 
-        enum class Flag : operand_t
+        //We will define these when necessary. But we have eight possible flags.
+        enum class Flag : flag_t
         {
-
+            FLAG1 = 0b00000001,
+            FLAG2 = 0b00000010,
+            FLAG3 = 0b00000100,
+            FLAG4 = 0b00001000,
+            FLAG5 = 0b00010000,
+            FLAG6 = 0b00100000,
+            FLAG7 = 0b01000000,
+            FLAG8 = 0b10000000,
         };
 
         inline instruction_t make_instruction(                                      // Makes Instruction
