@@ -1,3 +1,4 @@
+**NOTE: This file needs a heavy overhaul and is almost definitely out dated**
 # BLSL <u>B</u>asic <u>L</u>arge-<u>S</u>ized <u>L</u>anguage
 ### A basic scripting language with large (n byte sized) primitives for scientific computation / experimentation. 
 
