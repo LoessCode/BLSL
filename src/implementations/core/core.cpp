@@ -93,11 +93,11 @@ namespace BLSVM
         {
             instruction_t instruction = 0;
 
-            instruction |= (opcode << OPCODE_SHIFT) & OPCODE_MASK;
-            instruction |= (a << OPND_A_SHIFT) & OPND_A_MASK;
-            instruction |= (b << OPND_B_SHIFT) & OPND_B_MASK;
-            instruction |= (c << OPND_C_SHIFT) & OPND_C_MASK;
-            instruction |= (flags << FLAGBT_SHIFT) & FLAGBT_MASK;
+            instruction |= static_cast<instruction_t>(opcode) << OPCODE_SHIFT;
+            instruction |= static_cast<instruction_t>(a) << OPND_A_SHIFT;
+            instruction |= static_cast<instruction_t>(b) << OPND_B_SHIFT;
+            instruction |= static_cast<instruction_t>(c) << OPND_C_SHIFT;
+            instruction |= static_cast<instruction_t>(flags) << FLAGBT_SHIFT;
 
             return instruction;
         }
@@ -110,6 +110,42 @@ namespace BLSVM
         void set_register_flag(operand_t& operand, bool value)
         {
             operand |= (value << OPND_T_SHIFT) & OPND_TYPE_MASK;
+        }
+
+        opcode_t decode_opcode(const instruction_t &instruction)
+        {
+            return static_cast<Bytecode::opcode_t>((instruction & Bytecode::OPCODE_MASK) >> Bytecode::OPCODE_SHIFT);
+        }
+
+        operand_t decode_operand_A(const instruction_t &instruction)
+        {
+            return static_cast<Bytecode::operand_t>((instruction & Bytecode::OPND_A_MASK) >> Bytecode::OPND_A_SHIFT);
+        }
+
+        operand_t decode_operand_B(const instruction_t &instruction)
+        {
+            return static_cast<Bytecode::operand_t>((instruction & Bytecode::OPND_B_MASK) >> Bytecode::OPND_B_SHIFT);
+        }
+
+        operand_t decode_operand_C(const instruction_t &instruction)
+        {
+            return static_cast<Bytecode::operand_t>((instruction & Bytecode::OPND_C_MASK) >> Bytecode::OPND_C_SHIFT);
+        }
+
+        flag_t decode_flag(const instruction_t &instruction)
+        {
+            return static_cast<Bytecode::flag_t>((instruction & Bytecode::FLAGBT_MASK) >> Bytecode::FLAGBT_SHIFT);
+        }
+
+        Instruction decode_instruction(const instruction_t &instruction)
+        {
+            Instruction instructionStruct{};
+            instructionStruct.opcode = Bytecode::decode_opcode(instruction);
+            instructionStruct.a = Bytecode::decode_operand_A(instruction);
+            instructionStruct.b = Bytecode::decode_operand_B(instruction);
+            instructionStruct.c = Bytecode::decode_operand_C(instruction);
+            instructionStruct.flags = Bytecode::decode_flag(instruction);
+            return instructionStruct;
         }
     }
 }

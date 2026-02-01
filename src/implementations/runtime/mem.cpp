@@ -6,14 +6,14 @@
 
 namespace BLSVM
 {
-    inline byte_t * Stack::get_ptr(const size_t elementIndex)
+    ubyte_t * Stack::get_ptr(const size_t elementIndex)
     {
         if (elementIndex >= _elementOffsets.size()) throw std::runtime_error("Stack Class Error Temporary"); //TODO THROW
 
         return _memory.data() + _elementOffsets[elementIndex].first;
     }
 
-    inline size_t Stack::get_size(const size_t elementIndex) const
+    size_t Stack::get_size(const size_t elementIndex) const
     {
         if (elementIndex >= _elementOffsets.size()) throw std::runtime_error("Stack Class Error Temporary"); //TODO THROW
 
@@ -26,7 +26,7 @@ namespace BLSVM
         _elementOffsets.reserve(OFFSET_VECTOR_SIZE);
     }
 
-    inline void Stack::push(const byte_t *data, const size_t size)
+    void Stack::push(const ubyte_t *data, const size_t size)
     {
         if (_stackPointer + static_cast<ptrdiff_t>(size) > STACK_SIZE) throw std::runtime_error("Stack Class Error Temporary"); //TODO THROW
 
@@ -36,14 +36,14 @@ namespace BLSVM
         _stackPointer += static_cast<ptrdiff_t>(size);
     }
 
-    inline void Stack::write(const byte_t *data, const size_t elementIndex)
+    void Stack::write(const ubyte_t *data, const size_t elementIndex)
     {
         if (elementIndex >= _elementOffsets.size()) throw std::runtime_error("Stack Class Error Temporary"); //TODO THROW
 
         memmove(_memory.data() + _elementOffsets[elementIndex].first, data, _elementOffsets[elementIndex].second);
     }
 
-    inline void Stack::pop()
+    void Stack::pop()
     {
         if (_elementOffsets.empty()) throw std::runtime_error("Stack Class Error Temporary"); //TODO THROW
 
@@ -53,14 +53,14 @@ namespace BLSVM
 
 
 
-    inline byte_t const * LiteralPool::read_data(size_t elementIndex) const
+    ubyte_t const * LiteralPool::read_data(size_t elementIndex) const
     {
         if (elementIndex >= _elementOffsets.size()) throw std::out_of_range("VM::read_data: invalid element index temporary"); //TODO THROW
 
-        return const_cast<byte_t const*>(_memory.data() + _elementOffsets[elementIndex].first);
+        return const_cast<ubyte_t const*>(_memory.data() + _elementOffsets[elementIndex].first);
     }
 
-    inline size_t LiteralPool::read_size(size_t elementIndex) const
+    size_t LiteralPool::read_size(size_t elementIndex) const
     {
         if (elementIndex >= _elementOffsets.size()) throw std::out_of_range("VM::read_data: invalid element index temporary"); //TODO THROW
 
@@ -69,11 +69,11 @@ namespace BLSVM
 
     LiteralPool::LiteralPool(std::istream& inputStream)
     {
-        defer_init(inputStream);
+        defer_load(inputStream);
     }
 
 
-    void LiteralPool::defer_init(std::istream &inputStream)
+    void LiteralPool::defer_load(std::istream &inputStream)
     {
         ptrdiff_t  memoryOffset = 0;
         size_t literalCount;

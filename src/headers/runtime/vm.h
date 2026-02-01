@@ -7,6 +7,7 @@
 #define BLSLANG_VM_H
 
 #include "mem.h"
+#include <iomanip>
 
 namespace BLSVM
 {
@@ -50,7 +51,7 @@ namespace BLSVM
 
     struct Register
     {
-        byte_t* loc;
+        ubyte_t* loc;
         size_t size;
         reginfo_t info;
     };
@@ -67,17 +68,34 @@ namespace BLSVM
 
     using operation_f = void (VM::*)(const Bytecode::Instruction);
 
+    inline std::ostream& OutputStream = std::cout;
+
     class VM : public Stack, public LiteralPool
     {
     private:
         std::array<Register, REGISTER_COUNT> _registers{};
         std::array<operation_f, sizeof(Bytecode::opcode_t)*256> _operations{};
 
-    public:
-        VM();
+        std::vector<Bytecode::Instruction> _program;
 
     private:
+        [[nodiscard]] Register get_register(Bytecode::operand_t operand) const;
 
+        [[nodiscard]] View view_register(Bytecode::operand_t operand) const;
+        [[nodiscard]] View view_literal(Bytecode::operand_t operand) const;
+
+        [[nodiscard]] View view_operand(Bytecode::operand_t operand) const;
+
+
+    public:
+        VM();
+        void defer_init(std::istream& inputStream);
+
+        void boot();
+
+    private:
+        void _operation_UNSIGNED_ADD(Bytecode::Instruction instruction);
+        void _operation_DEBUG_DUMP(Bytecode::Instruction instruction);
     };
 }
 #endif //BLSLANG_VM_H

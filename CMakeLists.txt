@@ -32,6 +32,8 @@ add_executable(BLSLang src/main.cpp
         src/implementations/intermediate/astnodes.cpp
         src/implementations/err/err.cpp
         src/implementations/runtime/mem.cpp
+        src/implementations/debug/debug.cpp
+        src/headers/debug/debug.h
 
 
 )

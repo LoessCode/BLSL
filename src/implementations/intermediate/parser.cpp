@@ -92,6 +92,7 @@ std::expected<std::unique_ptr<BLSL::ASTNode::BinaryOperator>, BLSL::Token> BLSL:
 
         return std::make_unique<ASTNode::BinaryOperator>(std::move(op));
     }
+    return std::unexpected(_peek());
 }
 
 bool BLSL::Parser::_match_punctuator(PunctuatorType pType) const
@@ -276,7 +277,22 @@ BLSL::Node_t BLSL::Parser::_parse_for()
 
 }
 
-BLSL::Node_t BLSL::Parser::_parse_while() {}
+BLSL::Node_t BLSL::Parser::_parse_while()
+{
+    Token head = _next();
+    ASTNode::While whileNode;
+    whileNode.debugPos = head.debugPos;
+
+    _consume_punctuator(PunctuatorType::LPAREN);
+
+    whileNode.condition = _parse_expression();
+
+    _consume_punctuator(PunctuatorType::RPAREN);
+
+    whileNode.body = _parse_statement();
+
+    return std::make_unique<ASTNode::While>(std::move(whileNode));
+}
 
 
 BLSL::Node_t BLSL::Parser::_parse_if()

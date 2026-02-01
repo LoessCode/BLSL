@@ -13,26 +13,35 @@
 
 namespace BLSVM
 {
+    struct View
+    {
+        ubyte_t const* const loc;
+        const size_t size;
+    };
+}
+
+namespace BLSVM
+{
     inline constexpr size_t STACK_SIZE = 1024*1024*4;
     inline constexpr size_t OFFSET_VECTOR_SIZE = 1024*4;
 
     class Stack
     {
     private:
-        std::array<byte_t, STACK_SIZE> _memory{};
+        std::array<ubyte_t, STACK_SIZE> _memory{};
         std::vector<std::pair<ptrdiff_t, size_t>> _elementOffsets;                  //Stores the offsets of elements within the stack and stores their sizes.
         ptrdiff_t _stackPointer;
 
     protected:
-        [[nodiscard]] inline byte_t* get_ptr(size_t elementIndex);
-        [[nodiscard]] inline size_t get_size(size_t elementIndex) const;
+        [[nodiscard]] ubyte_t* get_ptr(size_t elementIndex);
+        [[nodiscard]] size_t get_size(size_t elementIndex) const;
 
     public:
         Stack();
 
-        inline void push(const byte_t* data, size_t size);
-        inline void write(const byte_t* data, size_t elementIndex);
-        inline void pop();
+        void push(const ubyte_t* data, size_t size);
+        void write(const ubyte_t* data, size_t elementIndex);
+        void pop();
 
     };
 }
@@ -42,18 +51,18 @@ namespace BLSVM
     class LiteralPool
     {
     private:
-        std::vector<byte_t> _memory;
+        std::vector<ubyte_t> _memory;
         std::vector<std::pair<ptrdiff_t, size_t>> _elementOffsets;
 
     protected:
-        [[nodiscard]] inline byte_t const* read_data(size_t elementIndex) const;
-        [[nodiscard]] inline size_t read_size(size_t elementIndex) const;
+        [[nodiscard]] ubyte_t const* read_data(size_t elementIndex) const;
+        [[nodiscard]] size_t read_size(size_t elementIndex) const;
 
     public:
         explicit LiteralPool(std::istream& inputStream);
         LiteralPool() = default;
 
-        void defer_init(std::istream& inputStream);
+        void defer_load(std::istream& inputStream);
     };
 }
 
