@@ -13,6 +13,8 @@
 #include <cstdint>
 #include <cstddef>
 
+#include "blsl.h"
+
 
 namespace BLSVM
 {
@@ -24,6 +26,7 @@ namespace BLSVM
 
     using sbyte_t = uint8_t;
     using slongbyte_t = int16_t;
+
 
     namespace Bytecode
     {
@@ -117,7 +120,8 @@ namespace BLSVM
             operand_t b=0,
             operand_t c=0,
             flag_t flags=0
-            );
+        );
+
         bool is_register(operand_t operand);                                 // Checks if the operand is a register or a constant pool reference
         inline void set_register_flag(operand_t& operand, bool value);              // Sets the register flag in the operand.
 

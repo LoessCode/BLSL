@@ -9,10 +9,21 @@ namespace BLSL
 {
     const LexemeTable_t LEXEME_TABLE = {
         {TokenType::OPERATOR, {
-            {"+", OperatorType::ADD},
-            {"-", OperatorType::SUB},
-            {"*", OperatorType::MUL},
-            {"/", OperatorType::DIV},
+            {"+", OperatorType::UNSIGNED_ADD},
+            {"-", OperatorType::UNSIGNED_SUB},
+            {"*", OperatorType::UNSIGNED_MUL},
+            {"/", OperatorType::UNSIGNED_DIV},
+
+            {"~+", OperatorType::SIGNED_ADD},
+            {"~-", OperatorType::SIGNED_SUB},
+            {"~*", OperatorType::SIGNED_MUL},
+            {"~/", OperatorType::SIGNED_DIV},
+
+            {".+", OperatorType::SCI_ADD},
+            {".-", OperatorType::SCI_SUB},
+            {".*", OperatorType::SCI_MUL},
+            {"./", OperatorType::SCI_DIV},
+
             {"^", OperatorType::POW},
             {"&", OperatorType::BW_AND},
             {"|", OperatorType::BW_OR},
@@ -53,10 +64,10 @@ namespace BLSL
 
     const std::unordered_map<OperatorType, std::pair<int, int>> OPERATOR_PRECEDENCE = {
         {OperatorType::POW, {220, 222}},
-        {OperatorType::MUL, {210, 212}},
-        {OperatorType::DIV, {210, 212}},
-        {OperatorType::ADD, {200, 202}},
-        {OperatorType::SUB, {200, 202}},
+        {OperatorType::UNSIGNED_MUL, {210, 212}},
+        {OperatorType::UNSIGNED_DIV, {210, 212}},
+        {OperatorType::UNSIGNED_ADD, {200, 202}},
+        {OperatorType::UNSIGNED_SUB, {200, 202}},
 
         {OperatorType::BW_LSHIFT, {130, 132}},
         {OperatorType::BW_RSHIFT, {130, 132}},
@@ -66,7 +77,7 @@ namespace BLSL
     };
 
     const std::unordered_map<OperatorType, int> PREFIX_PRECEDENCE = {
-        {OperatorType::SUB, 2100},
+        {OperatorType::UNSIGNED_SUB, 2100},
         {OperatorType::BW_NOT, 1100}
     };
 
@@ -148,4 +159,8 @@ namespace BLSVM
             return instructionStruct;
         }
     }
+
+
+
+
 }

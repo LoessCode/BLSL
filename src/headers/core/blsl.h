@@ -26,11 +26,22 @@ namespace BLSL
 
     enum class OperatorType
     {
-        ADD,
-        SUB,
+        UNSIGNED_ADD,
+        UNSIGNED_SUB,
+        UNSIGNED_DIV,
+        UNSIGNED_MUL,
+
+        SIGNED_ADD,
+        SIGNED_SUB,
+        SIGNED_DIV,
+        SIGNED_MUL,
+
+        SCI_ADD,
+        SCI_SUB,
+        SCI_DIV,
+        SCI_MUL,
+
         POW,
-        MUL,
-        DIV,
 
         BW_AND,
         BW_OR,
