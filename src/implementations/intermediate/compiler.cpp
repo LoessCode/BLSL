@@ -10,29 +10,61 @@ static const std::unordered_map<BLSL::OperatorType, BLSVM::Bytecode::OpCode> OPE
     {BLSL::OperatorType::UNSIGNED_ADD, BLSVM::Bytecode::OpCode::UNSIGNED_ADD}
 }; //TODO COMPLETE
 
-BLSL::Compiler::Compiler()
-    : _virtualRegisterCount(0), _variableCount(0), _literalCount(0), _compileTimeSizeCount(0)
+BLSL::Precursor::Operand BLSL::Flattener::_traverse_expression(ASTNode::Node* node)
+{
+    if (auto literal = dynamic_cast<ASTNode::Literal*>(node))
+    {
+        if (!_literalMap.contains(literal->value)) _literalMap.emplace(literal->value, _literalIndex++);
+        return Precursor::Operand{Precursor::OperandType::LITERAL, _literalMap.at(literal->value)};
+    }
+
+    if (auto variable = dynamic_cast<ASTNode::Variable*>(node))
+    {
+        if (!_variableMap.contains(variable->identifier)) throw std::runtime_error("Variable mapping not exists"); //TODO THROW
+
+        return Precursor::Operand{Precursor::OperandType::VARIABLE, _variableMap.at(variable->identifier).second};
+    }
+
+    if (auto binop = dynamic_cast<ASTNode::BinaryOperator*>(node))
+    {
+        visit(binop);
+        return Precursor::Operand{Precursor::OperandType::VIRTUAL_REGISTER, _virtualRegisterIndex-1};
+    }
+}
+
+BLSL::Flattener::Flattener()
+    : _virtualRegisterIndex(0), _variableIndex(0), _literalIndex(0), _compileTimeSizeIndex(0)
 {
 
 }
 
-void BLSL::Compiler::visit(ASTNode::Alloc *node)
+void BLSL::Flattener::visit(ASTNode::Alloc *node)
 {
     if (_variableMap.contains(node->identifier)) throw std::runtime_error("Variable mapping already exists"); //TODO THROW
 
-    _variableMap[node->identifier] = {node->size, _variableCount};
+    _variableMap[node->identifier] = {node->size, _variableIndex};
 
     Precursor::Instruction instruction = {
         BLSVM::Bytecode::OpCode::ALLOC_STACK,
-        {Precursor::VARIABLE, _variableCount++}
+        {Precursor::OperandType::VARIABLE, _variableIndex++}
     };
 
     _precursorBuffer.emplace_back(instruction);
 }
 
-void BLSL::Compiler::visit(ASTNode::BinaryOperator *node)
+void BLSL::Flattener::visit(ASTNode::BinaryOperator *node)
 {
-    
+    Precursor::Instruction instruction = {
+        OPERATOR_OPCODE_MAP.at(node->type)
+    };
+
+    instruction.a = _traverse_expression(node->left.get());
+    instruction.b = _traverse_expression(node->right.get());
+
+    //NOTE THIS MUST BE THE LAST VREG ALLOCATION IN THIS FUNCTION
+    instruction.c = Precursor::Operand{Precursor::OperandType::VIRTUAL_REGISTER, _virtualRegisterIndex++};
+
+    _precursorBuffer.emplace_back(instruction);
 }
 
 

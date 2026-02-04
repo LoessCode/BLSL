@@ -14,7 +14,7 @@ namespace BLSL
 {
     namespace Precursor
     {
-        enum OperandType
+        enum class OperandType
         {
             VIRTUAL_REGISTER,
             COMPILE_TIME_SIZE,
@@ -34,28 +34,29 @@ namespace BLSL
             Operand c;
             BLSVM::Bytecode::flag_t flags;
         };
+
     }
 
-    class Compiler : public ASTNode::Visitor
+    class Flattener : public ASTNode::Visitor
     {
     private:
-        size_t _virtualRegisterCount;
+        size_t _virtualRegisterIndex;
         std::vector<Precursor::Instruction> _precursorBuffer;
 
         std::unordered_map<std::string, std::pair<size_t, size_t>> _variableMap;           // Identifier, {size, index}
-        size_t _variableCount;
+        size_t _variableIndex;
 
         std::unordered_map<std::string, size_t> _literalMap;             // Literal, index
-        size_t _literalCount;
+        size_t _literalIndex;
 
         std::unordered_map<size_t, size_t> _compileTimeSizes;            // csz, index
-        size_t _compileTimeSizeCount;
+        size_t _compileTimeSizeIndex;
 
     private:
-
+        Precursor::Operand _traverse_expression(ASTNode::Node* node);
 
     public:
-        Compiler();
+        Flattener();
     public:
         void visit(ASTNode::Alloc *node) override;
         void visit(ASTNode::BinaryOperator *node) override;

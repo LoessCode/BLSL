@@ -165,6 +165,8 @@ namespace BLSL
         class Visitor
         {
         public:
+            virtual ~Visitor() = default;
+
             virtual void visit(BodyNode* node) = 0;
 
             virtual void visit(BinaryOperator* node) = 0;
