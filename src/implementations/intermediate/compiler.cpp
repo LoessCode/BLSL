@@ -11,41 +11,29 @@ static const std::unordered_map<BLSL::OperatorType, BLSVM::Bytecode::OpCode> OPE
 }; //TODO COMPLETE
 
 BLSL::Compiler::Compiler()
-    : _virtualRegisterCounter(0), _compileTimeSizeCounter(0)
+    : _virtualRegisterCount(0), _variableCount(0), _literalCount(0), _compileTimeSizeCount(0)
 {
 
 }
 
 void BLSL::Compiler::visit(ASTNode::Alloc *node)
 {
-    _variableMap.emplace(node->identifier, node->size);
+    if (_variableMap.contains(node->identifier)) throw std::runtime_error("Variable mapping already exists"); //TODO THROW
 
-    size_t index = _compileTimeSizes.contains(node->size) ? index = _compileTimeSizes[node->size] : _compileTimeSizeCounter++;
+    _variableMap[node->identifier] = {node->size, _variableCount};
 
-    BLSVM::Bytecode::instruction_t instruction = BLSVM::Bytecode::make_instruction(
-        static_cast<BLSVM::Bytecode::opcode_t>(BLSVM::Bytecode::OpCode::ALLOC_STACK),
-        static_cast<BLSVM::Bytecode::operand_t>(index & (~BLSVM::Bytecode::OPND_TYPE_MASK))
-    );
+    Precursor::Instruction instruction = {
+        BLSVM::Bytecode::OpCode::ALLOC_STACK,
+        {Precursor::VARIABLE, _variableCount++}
+    };
 
-    //TODO HEAP ALLOCATIONS!
-
-    _outBuffer.emplace_back(instruction);
+    _precursorBuffer.emplace_back(instruction);
 }
 
 void BLSL::Compiler::visit(ASTNode::BinaryOperator *node)
 {
-    BLSVM::Bytecode::operand_t LHS;
-    BLSVM::Bytecode::operand_t RHS;
-
-    if (auto literal = dynamic_cast<ASTNode::Literal*>(node->left.get()))
-    {
-
-    }
-    //TODO COMPLETE
-
-    BLSVM::Bytecode::operand_t dest = static_cast<BLSVM::Bytecode::operand_t>(_virtualRegisterCounter++) | BLSVM::Bytecode::OPND_TYPE_MASK;
-
-    BLSVM::Bytecode::instruction_t instruction = BLSVM::Bytecode::make_instruction(
-        static_cast<BLSVM::Bytecode::opcode_t>()
-    );
+    
 }
+
+
+

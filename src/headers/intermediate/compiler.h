@@ -12,17 +12,47 @@
 
 namespace BLSL
 {
-
+    namespace Precursor
+    {
+        enum OperandType
+        {
+            VIRTUAL_REGISTER,
+            COMPILE_TIME_SIZE,
+            LITERAL,
+            VARIABLE
+        };
+        struct Operand
+        {
+            OperandType type;
+            size_t index;
+        };
+        struct Instruction
+        {
+            BLSVM::Bytecode::OpCode opCode;
+            Operand a;
+            Operand b;
+            Operand c;
+            BLSVM::Bytecode::flag_t flags;
+        };
+    }
 
     class Compiler : public ASTNode::Visitor
     {
     private:
-        size_t _virtualRegisterCounter;
-        std::vector<BLSVM::Bytecode::instruction_t> _outBuffer;
-        std::unordered_map<std::string, size_t> _variableMap;
+        size_t _virtualRegisterCount;
+        std::vector<Precursor::Instruction> _precursorBuffer;
 
-        std::unordered_map<size_t, size_t> _compileTimeSizes;
-        size_t _compileTimeSizeCounter;
+        std::unordered_map<std::string, std::pair<size_t, size_t>> _variableMap;           // Identifier, {size, index}
+        size_t _variableCount;
+
+        std::unordered_map<std::string, size_t> _literalMap;             // Literal, index
+        size_t _literalCount;
+
+        std::unordered_map<size_t, size_t> _compileTimeSizes;            // csz, index
+        size_t _compileTimeSizeCount;
+
+    private:
+
 
     public:
         Compiler();
