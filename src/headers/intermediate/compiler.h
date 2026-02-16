@@ -6,7 +6,9 @@
 #define BLSLANG_COMPILER_H
 
 #include <memory>
+#include <queue>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "astnodes.h"
 #include "../core/blsbyc.h"
@@ -18,7 +20,12 @@ namespace BLSL
 
         enum class OperandType
         {
-            VIRTUAL_REGISTER,
+            VIRTUAL_REGISTER_GENERAL,
+            VIRTUAL_REGISTER_SCI,
+
+            REGISTER_GENERAL,
+            REGISTER_SCI,
+
             COMPILE_TIME_SIZE,
             LITERAL,
             VARIABLE,
@@ -74,8 +81,16 @@ namespace BLSL
     class RegisterPass
     {
     private:
-        std::unordered_map<size_t, size_t> _virtualRegisterLifetimes;                  // Register Index, Instruction index of last use.
+        std::unordered_map<size_t, size_t> _virtualRegisterLifetimes;                  // vRegister Index, Instruction index of last use.
         Precursor::PrecursorBuffer_t _precursorBuffer;
+
+        std::queue<size_t> _freeGeneralRegisters;
+        std::unordered_map<size_t, size_t> _assignedRegisters;                             // vreg index, real register index.
+
+    private:
+        bool _free_register(Precursor::Operand op, size_t instructionIndex);
+        auto _assign_register(Precursor::Operand op, size_t instructionIndex) -> void;
+        void _mutate_precursor(Precursor::Operand& op, size_t instructionIndex);
     public:
         RegisterPass(Precursor::PrecursorBuffer_t precursorBuffer, std::unordered_map<size_t, size_t> registerLifetimes);
 
