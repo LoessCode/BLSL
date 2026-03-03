@@ -223,6 +223,75 @@ std::vector<size_t> BLSL::Parser::_consume_compile_time_size_list()
     return result;
 }
 
+BLSL::Node_t BLSL::Parser::_make_atom_consume()
+{
+    if (_peek().type == TokenType::LITERAL)
+    {
+        Token token = _next();
+        ASTNode::Literal literal;
+        literal.debugPos = token.debugPos;
+        literal.value = token.value.value();
+        literal.type = std::get<LiteralType>(token.subType);
+
+        return std::make_unique<ASTNode::Literal>(literal);
+    }
+
+    if (_peek().type == TokenType::IDENTIFIER)
+    {
+        Token token = _next();
+        ASTNode::Variable variable;
+        variable.debugPos = token.debugPos;
+        variable.identifier = token.value.value();
+
+        return std::make_unique<ASTNode::Variable>(variable);
+    }
+
+    throw Error::UnexpectedToken(TokenType::LITERAL, _peek());
+}
+
+std::string BLSL::Parser::_get_identifier_consume()
+{
+    if (_peek().type == TokenType::IDENTIFIER)
+    {
+        return _next().value.value();
+    }
+
+    throw Error::UnexpectedToken(TokenType::IDENTIFIER, _peek());
+}
+
+BLSL::Token BLSL::Parser::_get_literal_consume()
+{
+    if (_peek().type == TokenType::LITERAL)
+    {
+        return _next();
+    }
+    throw Error::UnexpectedToken(TokenType::LITERAL, _peek());
+}
+
+BLSL::Token BLSL::Parser::_get_literal_consume(const LiteralType lType)
+{
+    if (_peek().type == TokenType::LITERAL)
+    {
+        if (std::get<LiteralType>(_peek().subType) == lType) return _next();
+    }
+    throw Error::UnexpectedToken(TokenType::LITERAL, _peek());
+}
+
+std::unique_ptr<BLSL::ASTNode::BinaryOperator> BLSL::Parser::_make_binary_operator_consume()
+{
+    if (_peek().type == TokenType::OPERATOR)
+    {
+        const Token token = _next();
+        ASTNode::BinaryOperator op;
+        op.debugPos = token.debugPos;
+        op.type = std::get<OperatorType>(token.subType);
+
+        return std::make_unique<ASTNode::BinaryOperator>(std::move(op));
+    }
+    throw Error::UnexpectedToken(TokenType::OPERATOR, _peek());
+}
+
+
 BLSL::Node_t BLSL::Parser::_parse_for()
 {
     const Token head = _next();

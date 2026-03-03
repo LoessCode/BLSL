@@ -22,7 +22,8 @@ namespace BLSL
         [[nodiscard]] const Token& _peek() const;
         Token _next();
 
-
+    // Deprecated
+    private:
         [[nodiscard]] [[deprecated]] std::expected<OperatorType, Token> _peek_operator() const;
 
         [[deprecated]] std::expected<Node_t, Token> _get_atom();
@@ -41,6 +42,7 @@ namespace BLSL
 
         size_t _consume_compile_time_size();
         std::vector<size_t> _consume_compile_time_size_list();
+
 
     private:
         Node_t _make_atom_consume();
