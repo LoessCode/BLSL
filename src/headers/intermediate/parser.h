@@ -19,20 +19,20 @@ namespace BLSL
         size_t _pos;
 
     private:
-        const Token& _peek() const;
+        [[nodiscard]] const Token& _peek() const;
         Token _next();
 
 
-        [[deprecated]] std::expected<OperatorType, Token> _peek_operator() const;
+        [[nodiscard]] [[deprecated]] std::expected<OperatorType, Token> _peek_operator() const;
 
         [[deprecated]] std::expected<Node_t, Token> _get_atom();
         [[deprecated]] std::expected<std::string, Token> _get_identifier();
         [[deprecated]] std::expected<Token, Token> _get_literal();
         [[deprecated]] std::expected<std::unique_ptr<ASTNode::BinaryOperator>, Token> _get_operator();
 
-        [[deprecated]] bool _match_punctuator(PunctuatorType pType) const;
-        [[deprecated]] bool _match_comparator(ComparatorType cType) const;
-        [[deprecated]] bool _match_keyword(KeywordType kType) const;
+        [[nodiscard]] [[deprecated]] bool _match_punctuator(PunctuatorType pType) const;
+        [[nodiscard]] [[deprecated]] bool _match_comparator(ComparatorType cType) const;
+        [[nodiscard]] [[deprecated]] bool _match_keyword(KeywordType kType) const;
 
         [[deprecated]] void _consume_punctuator(PunctuatorType pType);
         [[deprecated]] void _consume_operator(OperatorType oType);
@@ -46,6 +46,7 @@ namespace BLSL
         Node_t _make_atom_consume();
         std::string _get_identifier_consume();
         Token _get_literal_consume();
+        Token _get_literal_consume(LiteralType lType);
         std::unique_ptr<ASTNode::BinaryOperator> _make_binary_operator_consume();
 
         template <BLSLEnum EnumTy>
@@ -78,6 +79,19 @@ namespace BLSL
             // TODO THROW
             throw;
         }
+
+        template <BLSLEnum EnumTy>
+        std::optional<EnumTy> _peek_if_type()
+        {
+            const Token& peek = _peek();
+            if (auto* subType = std::get_if<EnumTy>(&peek.subType))
+            {
+                return *subType;
+            }
+            return std::nullopt;
+        }
+
+
 
 
     private:
