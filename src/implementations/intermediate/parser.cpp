@@ -6,7 +6,7 @@
 
 #include <print>
 
-BLSL::Token BLSL::Parser::_peek() const
+const BLSL::Token& BLSL::Parser::_peek() const
 {
     if (_pos != _tokens->size())
     {

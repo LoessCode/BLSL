@@ -19,7 +19,7 @@ namespace BLSL
         size_t _pos;
 
     private:
-        Token _peek() const;
+        const Token& _peek() const;
         Token _next();
 
 
@@ -43,21 +43,40 @@ namespace BLSL
         std::vector<size_t> _consume_compile_time_size_list();
 
     private:
-        Node_t _get_atom_consume();
+        Node_t _make_atom_consume();
         std::string _get_identifier_consume();
         Token _get_literal_consume();
-        std::unique_ptr<ASTNode::BinaryOperator> _get_operator_consume();
+        std::unique_ptr<ASTNode::BinaryOperator> _make_binary_operator_consume();
 
         template <BLSLEnum EnumTy>
-        bool _match(EnumTy required)
+        bool _is_match(EnumTy required)
         {
+            const Token& peek = _peek();
+            if (auto* subType = std::get_if<EnumTy>(&peek.subType))
+            {
+                if (required == *subType)
+                {
+                    return true;
+                }
+            }
 
+            return false;
         }
 
         template <BLSLEnum EnumTy>
-        bool _consume(EnumTy required)
+        Token _consume(EnumTy required)
         {
+            Token peek = _peek();
+            if (auto* subType = std::get_if<EnumTy>(&peek.subType))
+            {
+                if (required == *subType)
+                {
+                    return _next();
+                }
+            }
 
+            // TODO THROW
+            throw;
         }
 
 
