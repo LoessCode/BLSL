@@ -148,6 +148,13 @@ namespace BLSL
             void invite(Visitor& visitor) override;
         };
 
+        struct CDump final : public Node
+        {
+            Node_t expression;
+
+            void invite(Visitor& visitor) override;
+        };
+
         /*
          * EXPRESSIONS
          */
@@ -181,6 +188,7 @@ namespace BLSL
 
             virtual void visit(MemInit* node) = 0;
             virtual void visit(Alloc* node) = 0;
+            virtual void visit(CDump* node) = 0;
         };
 
         class PrintVisitor final : public Visitor
@@ -217,6 +225,7 @@ namespace BLSL
 
             void visit(MemInit* node) override;
             void visit(Alloc* node) override;
+            void visit(CDump* node) override;
         };
     }
 

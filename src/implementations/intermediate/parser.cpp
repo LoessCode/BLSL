@@ -526,6 +526,15 @@ BLSL::BodyNode_t BLSL::Parser::_parse_block()
     return std::make_unique<ASTNode::BodyNode>(std::move(bodyNode));
 }
 
+BLSL::Node_t BLSL::Parser::_parse_cdump()
+{
+    _consume(KeywordType::CDUMP);
+    ASTNode::CDump cDumpNode;
+    cDumpNode.expression = std::move(_parse_expression());
+
+    return std::make_unique<ASTNode::CDump>(std::move(cDumpNode));
+}
+
 BLSL::Node_t BLSL::Parser::_parse_statement()
 {
     if (_is_match(PunctuatorType::LBRACE))
@@ -568,6 +577,8 @@ BLSL::Node_t BLSL::Parser::_parse_statement()
 
             case KeywordType::ALLOC:
                 return _parse_alloc();
+            case KeywordType::CDUMP:
+                return _parse_cdump();
             }
 
 

@@ -57,6 +57,7 @@ namespace BLSL
         {TokenType::KEYWORD, {
             {"meminit", KeywordType::MEMINIT},
             {"alloc", KeywordType::ALLOC},
+            {"cdump", KeywordType::CDUMP},
             {"func", KeywordType::FUNC},
             {"for", KeywordType::FOR},
             {"while", KeywordType::WHILE},

@@ -109,6 +109,9 @@ namespace BLSL
 
         Node_t _parse_expression(int lowestPrecedence = -1);
         BodyNode_t _parse_block();
+
+        Node_t _parse_cdump();
+
         Node_t _parse_statement();
 
 

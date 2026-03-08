@@ -154,6 +154,11 @@ void BLSL::ASTNode::PrintVisitor::visit(Alloc *node)
     _out_indent() << "Alloc: " << node->identifier << " <" << node->size << ">\n";
 }
 
+void BLSL::ASTNode::PrintVisitor::visit(CDump *node)
+{
+    _out_indent() << "CDump: " << node->expression << "\n";
+}
+
 void BLSL::ASTNode::BodyNode::invite(Visitor &visitor)
 {
     visitor.visit(this);
@@ -209,3 +214,7 @@ void BLSL::ASTNode::While::invite(Visitor &visitor)
     visitor.visit(this);
 }
 
+void BLSL::ASTNode::CDump::invite(Visitor &visitor)
+{
+    visitor.visit(this);
+}

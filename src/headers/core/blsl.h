@@ -73,6 +73,7 @@ namespace BLSL
 
         MEMINIT,
         ALLOC,
+        CDUMP,
         FUNC,
         FOR,
         IF,

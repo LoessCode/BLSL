@@ -106,6 +106,7 @@ namespace BLSL
 
         void visit(ASTNode::MemInit* node) override;
         void visit(ASTNode::Alloc* node) override;
+        void visit(ASTNode::CDump* node) override;
     };
 
     /*

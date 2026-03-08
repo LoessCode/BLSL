@@ -97,6 +97,16 @@ void BLSL::Flattener::visit(ASTNode::Alloc *node)
     _precursorBuffer->emplace_back(instruction);
 }
 
+void BLSL::Flattener::visit(ASTNode::CDump *node)
+{
+    Precursor::Instruction instruction = {
+        BLSVM::Bytecode::OpCode::DEBUG_DUMP,
+        _traverse_expression(node->expression.get())
+    };
+
+    _precursorBuffer->emplace_back(instruction);
+}
+
 void BLSL::Flattener::visit(ASTNode::BodyNode *node)
 {
     for (const auto& subNode : node->nodes)
@@ -111,12 +121,16 @@ void BLSL::Flattener::visit(ASTNode::BinaryOperator *node)
         OPERATOR_OPCODE_MAP.at(node->type)
     };
 
-    if (instruction.opCode == BLSVM::Bytecode::OpCode::SET)
-    {
-
-    }
-
     instruction.a = _traverse_expression(node->left.get());
+
+    // if (instruction.opCode == BLSVM::Bytecode::OpCode::SET)
+    // {
+    //     node->right->invite(*this);
+    //     _virtualRegisterLifetimes.erase(--_virtualRegisterIndex);
+    //     _precursorBuffer->back().c = instruction.a;
+    //     return;
+    // }
+
     instruction.b = _traverse_expression(node->right.get());
 
     //NOTE THIS MUST BE THE LAST VREG ALLOCATION IN THIS FUNCTION
