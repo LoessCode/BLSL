@@ -171,6 +171,7 @@ namespace BLSVM
         RETURNS,
         SCI,
         GENERAL,
+        SCRATCH,
     };
 
     // Not Enum Class to allow us to use as bitfield.
@@ -198,7 +199,7 @@ namespace BLSVM
         reginfo_t info;
     };
 
-    inline constexpr size_t REGISTER_COUNT = 256;
+    inline constexpr size_t REGISTER_COUNT = 256+128;
     extern const std::vector<RegisterInfo> REGISTER_INFO;
 };
 

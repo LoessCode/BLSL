@@ -26,6 +26,14 @@ namespace BLSL
             REGISTER_GENERAL,
             REGISTER_SCI,
 
+
+
+            VIRTUAL_SCRATCH_REGISTER_GENERAL,
+            VIRTUAL_SCRATCH_REGISTER_SCI,
+
+            SCRATCH_REGISTER_GENERAL,
+            SCRATCH_REGISTER_SCI,
+
             COMPILE_TIME_SIZE,
             LITERAL,
             VARIABLE,
@@ -65,8 +73,11 @@ namespace BLSL
     class Flattener : public ASTNode::Visitor
     {
     private:
-        size_t _virtualRegisterIndex;
-        Precursor::RegisterLifetimeBuffer_t _virtualRegisterLifetimes;                                                          // Register Index, Instruction index of last use.
+        size_t _virtualGeneralRegisterIndex;
+        Precursor::RegisterLifetimeBuffer_t _virtualGeneralRegisterLifetimes;                                                          // Register Index, Instruction index of last use.
+
+        size_t _virtualScratchRegisterIndex;
+        Precursor::RegisterLifetimeBuffer_t _virtualScratchRegisterLifetimes;
 
         Precursor::PrecursorBufferUP_t _precursorBuffer;
 
@@ -89,7 +100,8 @@ namespace BLSL
         Precursor::PrecursorBufferUP_t get_precursor_buffer() {return std::move(_precursorBuffer);}
         Precursor::LiteralMap_t get_literal_map() {return _literalMap;}                                              // Yes these are expensive, but they're not recurring calls so it's okay.
         Precursor::CompileTimeSizeMap_t get_compile_time_size_map() {return _compileTimeSizes;}                     // Same as above
-        Precursor::RegisterLifetimeBuffer_t get_register_lifetime_buffer() {return _virtualRegisterLifetimes;}
+        Precursor::RegisterLifetimeBuffer_t get_virtual_general_register_lifetime_buffer() {return _virtualGeneralRegisterLifetimes;}
+        Precursor::RegisterLifetimeBuffer_t get_virtual_scratch_register_lifetime_buffer() {return _virtualScratchRegisterLifetimes;}
 
     public:
         void visit(ASTNode::BodyNode* node) override;
@@ -117,18 +129,23 @@ namespace BLSL
     class RegisterPass
     {
     private:
-        Precursor::RegisterLifetimeBuffer_t _virtualRegisterLifetimes;                                                   // vRegister Index, Instruction index of last use.
+        Precursor::RegisterLifetimeBuffer_t _virtualGeneralRegisterLifetimes;                                                   // vRegister Index, Instruction index of last use.
+        Precursor::RegisterLifetimeBuffer_t _virtualScratchRegisterLifetimes;
+
         Precursor::PrecursorBufferUP_t _precursorBuffer;
 
         std::queue<size_t> _freeGeneralRegisters;
-        std::unordered_map<size_t, size_t> _assignedRegisters;                                                          // vreg index, real register index.
+        std::unordered_map<size_t, size_t> _assignedGeneralRegisters;                                                          // vreg index, real register index.
+
+        std::queue<size_t> _freeScratchRegisters;
+        std::unordered_map<size_t, size_t> _assignedScratchRegisters;
 
     private:
         bool _free_register(Precursor::Operand op, size_t instructionIndex);
         auto _assign_register(Precursor::Operand op, size_t instructionIndex) -> void;
         void _mutate_precursor(Precursor::Operand& op, size_t instructionIndex) const;
     public:
-        RegisterPass(Precursor::PrecursorBufferUP_t precursorBuffer, std::unordered_map<size_t, size_t> registerLifetimes);
+        RegisterPass(Precursor::PrecursorBufferUP_t precursorBuffer, Precursor::RegisterLifetimeBuffer_t virtualGeneralRegisterLifetimes, Precursor::RegisterLifetimeBuffer_t virtualScratchRegisterLifetimes);
 
         void assign_real_registers();
         Precursor::PrecursorBufferUP_t get_precursor_buffer() {return std::move(_precursorBuffer);}

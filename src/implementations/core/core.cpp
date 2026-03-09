@@ -192,6 +192,11 @@ namespace BLSVM
             RegisterType::GENERAL,
             RegisterFlag::REG_FLAG_WRITABLE,
             112
+        },
+        {
+            RegisterType::SCRATCH,
+            RegisterFlag::REG_FLAG_WRITABLE,
+            128
         }
     };
 

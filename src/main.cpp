@@ -168,7 +168,7 @@ int main2()
         }
     }
 
-    BLSL::RegisterPass registerPass(std::move(prec_buf), flattener.get_register_lifetime_buffer());
+    BLSL::RegisterPass registerPass(std::move(prec_buf), flattener.get_virtual_general_register_lifetime_buffer(), flattener.get_virtual_scratch_register_lifetime_buffer());
 
     registerPass.assign_real_registers();
     prec_buf = registerPass.get_precursor_buffer();

@@ -21,6 +21,10 @@ BLSVM::Bytecode::operand_t BLSL::Precursor::to_primitive_operand(Operand operand
     {
         case OperandType::REGISTER_GENERAL:
             outOperand |= BLSVM::Bytecode::OPND_TYPE_MASK;
+            break;
+        case OperandType::SCRATCH_REGISTER_GENERAL:
+            outOperand |= BLSVM::Bytecode::OPND_TYPE_MASK;
+            break;
         //TODO OTHER CASES
         default:
             break;
@@ -47,8 +51,8 @@ BLSL::Precursor::Operand BLSL::Flattener::_traverse_expression(ASTNode::Node* no
     if (auto binaryOperation = dynamic_cast<ASTNode::BinaryOperator*>(node))
     {
         visit(binaryOperation);
-        _virtualRegisterLifetimes[_virtualRegisterIndex-1] = _precursorBuffer->size();
-        return Precursor::Operand{Precursor::OperandType::VIRTUAL_REGISTER_GENERAL, _virtualRegisterIndex-1};
+        _virtualScratchRegisterLifetimes[_virtualScratchRegisterIndex-1] = _precursorBuffer->size();
+        return Precursor::Operand{Precursor::OperandType::VIRTUAL_SCRATCH_REGISTER_GENERAL, _virtualScratchRegisterIndex-1};
     }
 
 
@@ -61,19 +65,19 @@ size_t BLSL::Flattener::_cling_variable(const ASTNode::Variable *node)
 
     Precursor::Instruction instruction = {
         BLSVM::Bytecode::OpCode::CLING_STACK,
-        Precursor::Operand{Precursor::OperandType::VIRTUAL_REGISTER_GENERAL, _virtualRegisterIndex},
+        Precursor::Operand{Precursor::OperandType::VIRTUAL_REGISTER_GENERAL, _virtualGeneralRegisterIndex},
         Precursor::Operand{Precursor::OperandType::STACK_INDEX, _variableMap.at(node->identifier).second}
     };
 
-    _virtualRegisterLifetimes[_virtualRegisterIndex] = _precursorBuffer->size();
+    _virtualGeneralRegisterLifetimes[_virtualGeneralRegisterIndex] = _precursorBuffer->size();
     _precursorBuffer->emplace_back(instruction);
 
-    _virtualRegisterLifetimes.emplace(_virtualRegisterIndex, _precursorBuffer->size()-1);
-    return _virtualRegisterIndex++;
+    _virtualGeneralRegisterLifetimes.emplace(_virtualGeneralRegisterIndex, _precursorBuffer->size()-1);
+    return _virtualGeneralRegisterIndex++;
 }
 
 BLSL::Flattener::Flattener()
-    : _virtualRegisterIndex(0), _variableIndex(0), _literalIndex(0), _compileTimeSizeIndex(0)
+    : _virtualGeneralRegisterIndex(0), _virtualScratchRegisterIndex(0), _variableIndex(0), _literalIndex(0), _compileTimeSizeIndex(0)
 {
     Precursor::PrecursorBuffer_t precursorBuffer;
     _precursorBuffer = std::make_unique<Precursor::PrecursorBuffer_t>(precursorBuffer);
@@ -134,8 +138,9 @@ void BLSL::Flattener::visit(ASTNode::BinaryOperator *node)
     instruction.b = _traverse_expression(node->right.get());
 
     //NOTE THIS MUST BE THE LAST VREG ALLOCATION IN THIS FUNCTION
-    instruction.c = Precursor::Operand{Precursor::OperandType::VIRTUAL_REGISTER_GENERAL, _virtualRegisterIndex};
-    _virtualRegisterLifetimes.emplace(_virtualRegisterIndex++, _precursorBuffer->size()-1);
+    // Forgot why I left the above comment
+    instruction.c = Precursor::Operand{Precursor::OperandType::VIRTUAL_SCRATCH_REGISTER_GENERAL, _virtualScratchRegisterIndex};
+    _virtualScratchRegisterLifetimes.emplace(_virtualScratchRegisterIndex++, _precursorBuffer->size()-1);
 
     _precursorBuffer->emplace_back(instruction);
 }
@@ -149,62 +154,115 @@ void BLSL::Flattener::visit(ASTNode::While *node) {}
 void BLSL::Flattener::visit(ASTNode::If *node) {}
 void BLSL::Flattener::visit(ASTNode::MemInit *node) {}
 
-bool BLSL::RegisterPass::_free_register(Precursor::Operand op, size_t instructionIndex)
+bool BLSL::RegisterPass::_free_register(const Precursor::Operand op, size_t instructionIndex)
 {
-    if (op.type == Precursor::OperandType::VIRTUAL_REGISTER_GENERAL)
+    switch (op.type)
     {
-        if (_virtualRegisterLifetimes.at(op.index) == instructionIndex)
-        {
-            _freeGeneralRegisters.emplace(_assignedRegisters.at(op.index));
-        }
+        default:
+            return false;
+
+        case Precursor::OperandType::VIRTUAL_REGISTER_GENERAL:
+            if (_virtualGeneralRegisterLifetimes.at(op.index) == instructionIndex)
+            {
+                _freeGeneralRegisters.emplace(_assignedGeneralRegisters.at(op.index));
+                return true;
+            }
+            return false;
+
+        case Precursor::OperandType::VIRTUAL_SCRATCH_REGISTER_GENERAL:
+            if (_virtualScratchRegisterLifetimes.at(op.index) == instructionIndex)
+            {
+                _freeScratchRegisters.emplace(_assignedScratchRegisters.at(op.index));
+                return true;
+            }
+            return false;
     }
     return false;
 }
 
 void BLSL::RegisterPass::_assign_register(Precursor::Operand op, size_t instructionIndex)
 {
-    if (op.type == Precursor::OperandType::VIRTUAL_REGISTER_GENERAL)
+    switch (op.type)
     {
-        if (!_assignedRegisters.contains(op.index))
-        {
-            _assignedRegisters.emplace(op.index, _freeGeneralRegisters.front());
-            _freeGeneralRegisters.pop();
-        }
+        default:
+            return;
+
+        case Precursor::OperandType::VIRTUAL_REGISTER_GENERAL:
+            if (!_assignedGeneralRegisters.contains(op.index))
+            {
+                _assignedGeneralRegisters.emplace(op.index, _freeGeneralRegisters.front());
+                _freeGeneralRegisters.pop();
+            }
+            return;
+        case Precursor::OperandType::VIRTUAL_SCRATCH_REGISTER_GENERAL:
+            if (!_assignedScratchRegisters.contains(op.index))
+            {
+                _assignedScratchRegisters.emplace(op.index, _freeScratchRegisters.front());
+                _freeScratchRegisters.pop();
+            }
+            return;
     }
 }
 
 void BLSL::RegisterPass::_mutate_precursor(Precursor::Operand &op, size_t instructionIndex) const
 {
-    if (op.type == Precursor::OperandType::VIRTUAL_REGISTER_GENERAL)
+    switch (op.type)
     {
-        if (_assignedRegisters.contains(op.index))
-        {
-            op.type = Precursor::OperandType::REGISTER_GENERAL;
-            op.index = _assignedRegisters.at(op.index);
-        }
-        else
-        {
-            throw;
-            //TODO THROW
-        }
+        default:
+            return;
+        case Precursor::OperandType::VIRTUAL_REGISTER_GENERAL:
+            if (_assignedGeneralRegisters.contains(op.index))
+            {
+                op.type = Precursor::OperandType::REGISTER_GENERAL;
+                op.index = _assignedGeneralRegisters.at(op.index);
+            }
+            else
+            {
+                throw;
+                //TODO THROW
+            }
+            return;
+        case Precursor::OperandType::VIRTUAL_SCRATCH_REGISTER_GENERAL:
+            if (_assignedScratchRegisters.contains(op.index))
+            {
+                op.type = Precursor::OperandType::SCRATCH_REGISTER_GENERAL;
+                op.index = _assignedScratchRegisters.at(op.index);
+            }
+            else
+            {
+                throw;
+                //TODO THROW
+            }
+            return;
+
     }
 }
 
-BLSL::RegisterPass::RegisterPass(Precursor::PrecursorBufferUP_t precursorBuffer, std::unordered_map<size_t, size_t> registerLifetimes)
-: _virtualRegisterLifetimes(std::move(registerLifetimes)),
+BLSL::RegisterPass::RegisterPass(Precursor::PrecursorBufferUP_t precursorBuffer, Precursor::RegisterLifetimeBuffer_t virtualGeneralRegisterLifetimes, Precursor::RegisterLifetimeBuffer_t virtualScratchRegisterLifetimes)
+: _virtualGeneralRegisterLifetimes(std::move(virtualGeneralRegisterLifetimes)),
+_virtualScratchRegisterLifetimes(std::move(virtualScratchRegisterLifetimes)),
 _precursorBuffer(std::move(precursorBuffer))
 {
     size_t currIndex = 0;
     for (const auto& info : BLSVM::REGISTER_INFO)
     {
-        if (info.type == BLSVM::RegisterType::GENERAL)
+        switch (info.type)
         {
-            for (size_t i = 0; i < info.count; i++)
-            {
-                _freeGeneralRegisters.emplace(i+currIndex);
-            }
+            default:
+                break;
+            case BLSVM::RegisterType::GENERAL:
+                for (size_t i = 0; i < info.count; i++)
+                {
+                    _freeGeneralRegisters.emplace(i+currIndex);
+                }
+                break;
+            case BLSVM::RegisterType::SCRATCH:
+                for (size_t i = 0; i < info.count; i++)
+                {
+                    _freeScratchRegisters.emplace(i+currIndex);
+                }
+                break;
         }
-
         currIndex += info.count;
     }
 }
